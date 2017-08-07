@@ -6,7 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
@@ -17,13 +17,10 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.ImageView;
 
-import com.squareup.picasso.Picasso;
-import com.squareup.picasso.Target;
 
 public class FullScreenImageFragment extends DialogFragment {
 
     private static final String ARGUMENT_BITMAP = "ARGUMENT_BITMAP";
-    private static final String ARGUMENT_URL = "ARGUMENT_URL";
 
     private Bitmap bitmap;
 
@@ -41,13 +38,6 @@ public class FullScreenImageFragment extends DialogFragment {
         return fragment;
     }
 
-    protected static FullScreenImageFragment newInstance(@NonNull final String url) {
-        final FullScreenImageFragment fragment = new FullScreenImageFragment();
-        final Bundle bundle = new Bundle();
-        bundle.putString(ARGUMENT_URL, url);
-        fragment.setArguments(bundle);
-        return fragment;
-    }
 
     @NonNull
     @Override
@@ -69,24 +59,6 @@ public class FullScreenImageFragment extends DialogFragment {
         } else if (getArguments().containsKey(ARGUMENT_BITMAP) && getArguments().getParcelable(ARGUMENT_BITMAP) != null) {
             bitmap = getArguments().getParcelable(ARGUMENT_BITMAP);
             initialiseViews(view, bitmap);
-        } else if (getArguments().containsKey(ARGUMENT_URL) && getArguments().getParcelable(ARGUMENT_URL) != null) {
-            Picasso.with(getContext()).load(getArguments().getString(ARGUMENT_URL)).into(new Target() {
-                @Override
-                public void onBitmapLoaded(Bitmap bm, Picasso.LoadedFrom from) {
-                    bitmap = bm;
-                    initialiseViews(view, bitmap);
-                }
-
-                @Override
-                public void onBitmapFailed(Drawable errorDrawable) {
-
-                }
-
-                @Override
-                public void onPrepareLoad(Drawable placeHolderDrawable) {
-
-                }
-            });
         }
 
         dialog.setContentView(view);
@@ -232,7 +204,11 @@ public class FullScreenImageFragment extends DialogFragment {
                         final Point offset = new Point((int) event.getX(), (int) event.getY());
 
                         final View.DragShadowBuilder shadowBuilder = new DismissibleDragShadowBuilder(imageView, offset);
-                        imageView.startDrag(null, shadowBuilder, imageView, 0);
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                            imageView.startDragAndDrop(null, shadowBuilder, imageView, 0);
+                        } else imageView.startDrag(null, shadowBuilder, imageView, 0);
+
+
                         return true;
                 }
 
